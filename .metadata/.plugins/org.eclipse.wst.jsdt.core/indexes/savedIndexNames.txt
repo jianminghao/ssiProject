@@ -1,0 +1,9 @@
+INDEX VERSION 1.4+E:\FB3\workspace\myssi\.metadata\.plugins\org.eclipse.wst.jsdt.core\indexes
+898337375.index
+2896122719.index
+3560343286.index
+3376448911.index
+3309113697.index
+898337375.index
+117096448.index
+3152968790.index

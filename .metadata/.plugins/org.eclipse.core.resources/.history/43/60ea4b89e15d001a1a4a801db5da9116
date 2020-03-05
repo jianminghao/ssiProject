@@ -1,0 +1,9 @@
+package myssiProject.com.hao.detp.service;
+
+import myssiProject.com.hao.detp.vo.DeptInfo;
+
+public interface DeptManager {
+
+	public void insertDeptInfo(DeptInfo deptInFo);
+	
+}

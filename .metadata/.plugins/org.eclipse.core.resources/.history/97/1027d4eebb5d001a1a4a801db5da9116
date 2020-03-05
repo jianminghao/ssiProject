@@ -1,0 +1,6 @@
+package snippet;
+
+public class Snippet {
+	WARN No appenders could be found for logger (org.apache.commons.digester.Digester).
+}
+

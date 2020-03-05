@@ -1,0 +1,76 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+
+
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<SCRIPT src="resource/jquery/jquery.js" type=text/javascript></SCRIPT>
+	<script type="text/javascript">
+	$(function() {
+		
+		 $('.btn').click(function() {
+			var locationPath = "localhost:8080/myssiProject/dept.do?method=";
+			debugger;
+			var opt = $(this).val();
+			switch(opt) {
+		     case '1':
+		    	 locationPath += 'insert';
+		        break;
+		     case '2':
+		    	 locationPath += 'delete';
+		        break;
+		     case '3':
+		    	 locationPath += 'update';
+		        break;
+		     default:
+		    	 locationPath += 'list';
+			}
+			var deptNo =  document.getElementById("deptNo").value;
+	    	var dName =  document.getElementById("dName").value;
+	    	var loc =  document.getElementById("loc").value;
+			document.all.dept.action=locationPath +"&deptInfo.deptNo="+deptNo +"&deptInfo.dName="+dName +"&deptInfo.loc="+loc;
+			console.log(document.all.dept.action);
+			document.all.dept.target="DeptInfoShow";
+			document.all.dept.submit();
+			/* $(".dept").submit(); */
+			/* windows.location.href=document.all.dept.action; */
+			
+	});
+	});
+	</script>
+</head>
+<body>
+	<form id="dept" name ="dept"  method="post" action="" target="_blank">
+	<!-- <form action="dept.do"  method="post" focus="dept"> -->
+		<table>
+			<tr>
+				<td>部门编号:  </td>
+				 <td><input type="text" id="deptNo" name="deptInfo.deptNo"></td>
+			</tr>		
+			<tr>
+				<td>部门名称:  </td>
+				 <td><input type="text" id="dName" name="deptInfo.dName"></td>
+			</tr>		
+			<tr>
+				<td>部门位置:  </td>
+				 <td><input type="text" id="loc" name="deptInfo.loc"></td>
+			</tr>		
+		</table>
+		<button class="btn" name="insert" value="1">
+			新增
+		</button>
+		<button class="btn" name="delete" value="2">
+			删除
+		</button>
+		<button class="btn" name="update" value="3">
+			修改
+		</button>
+		<button class="btn" name="query" value="4">
+			查询
+		</button>
+	</form>	
+</body>
+</html>

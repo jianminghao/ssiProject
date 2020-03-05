@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.3//EN" "http://struts.apache.org/dtds/struts-config_1_3.dtd">
+
+<struts-config>
+	<form-beans>
+		<form-bean name="deptActionForm" type="myssiProject.com.hao.detp.actionForm.DeptActionForm">
+			<form-property name="detpInfo" type="myssiProject.com.hao.detp.vo.DeptInfo"></form-property>
+		</form-bean>
+	</form-beans>
+	<action-mappings>
+		<action path="/dept" 
+				input="/error.jsp"  
+				name="deptActionForm" 
+				scope="request"
+				parameter="method"
+      			type="myssiProject.com.hao.detp.action.DeptAction"
+      			cancellable="true">
+			<forward name="success" path="/success.jsp"></forward>
+			<forward name="failed" path="/error.jsp"></forward>
+			<forward name="query" path="/showDeptInfo.jsp"></forward>
+		</action>
+	</action-mappings>
+
+	<message-resources parameter="ApplicationResources" />
+</struts-config>

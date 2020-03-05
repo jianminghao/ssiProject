@@ -1,0 +1,28 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<script  src="resource/jquery/jquery.js" type="text/javascript"></script>
+<script>
+	$(".btn").click(function(){
+		debugger;
+		alert("dddd")
+		
+	});
+</script>
+<body>
+
+	<input type="button" class="btn" value="点    击">
+	
+	<input type="button" class="btn" onclick=aaa()>
+
+	<button calss="btn" type="button">
+		点击
+	</button>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<%@page import="java.util.List"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="myssiProject.com.hao.detp.vo.DeptInfo"%>
+
+<%
+	List<DeptInfo> deptInfoList = new ArrayList();
+	if (request.getAttribute("liFunctionConfirmInfo") != null) {
+		deptInfoList = (List<DeptInfo>) request.getAttribute("liFunctionConfirmInfo");
+	}
+%>
+
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<SCRIPT src="resource/jquery/jquery.easyui.min.js" type=text/javascript></SCRIPT>
+</head>
+<body>
+	<form id="dept" name ="dept"  method="post" action="" >
+	
+		<table>
+			<tr>
+				<td>部门编号:  </td>
+				 <td><input type="text" id="deptNo" name="deptInfo.deptNo"></td>
+			</tr>		
+			<tr>
+				<td>部门名称:  </td>
+				 <td><input type="text" id="dName" name="deptInfo.dName"></td>
+			</tr>		
+			<tr>
+				<td>部门位置:  </td>
+				 <td><input type="text" id="loc" name="deptInfo.loc"></td>
+			</tr>		
+		</table>
+	
+		
+	</form>	
+</body>
+</html>

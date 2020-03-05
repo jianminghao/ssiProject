@@ -1,0 +1,36 @@
+package myssiProject.com.hao.detp.dao.ibatis;
+
+import java.util.List;
+
+import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
+
+import myssiProject.com.hao.detp.dao.DeptDao;
+import myssiProject.com.hao.detp.vo.DeptInfo;
+
+public class DeptDaoImpl extends SqlMapClientDaoSupport implements DeptDao {
+
+	@Override
+	public void insertDeptInfo(DeptInfo deptInfo) {
+		getSqlMapClientTemplate().insert("deptSQL.insertDeptInfo", deptInfo);
+	}
+
+	@Override
+	public List<DeptInfo> queryAll() {
+		List<DeptInfo> deptInfoList = getSqlMapClientTemplate().queryForList("deptSQL.queryAll");
+		
+		return null;
+	}
+
+	@Override
+	public int updateByDeptNo(Integer deptNo) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int deleteByByDeptNo(Integer deptNo) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+}

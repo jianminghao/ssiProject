@@ -1,0 +1,7 @@
+package myssiProject.com.hao.detp.action;
+
+import org.apache.struts.actions.DispatchAction;
+
+public class DeptAction extends DispatchAction {
+
+}

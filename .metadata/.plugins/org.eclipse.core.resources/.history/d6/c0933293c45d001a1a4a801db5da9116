@@ -1,0 +1,1961 @@
+
+package myssiProject.com.hao.detp.action;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionForward;
+import org.apache.struts.action.ActionMapping;
+import org.apache.struts.actions.DispatchAction;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+
+public class BaseDispatchAction extends DispatchAction {
+    private static final int List = 0;
+    
+    private boolean selfTitle = false;
+	private int x_index = 0;
+	private int y_index = 0;
+	/**
+	 * A BY LIU_ZJ FOR L271 ON 20160229
+	 * 自定义制表人信息的位置
+	 * @param selfTitle
+	 * @param x_index
+	 * @param y_index
+	 */
+	public void setSelfTitle(boolean selfTitle, int x_index, int y_index){
+		this.selfTitle = selfTitle;
+		this.x_index = x_index;
+		this.y_index = y_index;
+	}
+	/**
+	 * 复位
+	 */
+	public void reset(){
+		this.selfTitle = false;
+		this.x_index = 0;
+		this.y_index = 0;
+	}
+   
+    protected UserInfo getUser(ActionMapping mapping, ActionForm form,
+			HttpServletRequest request, HttpServletResponse response){
+		return (UserInfo)request.getSession().getAttribute("user");
+    }
+	public Object getBean(String name) {
+        ApplicationContext ctx = 
+            WebApplicationContextUtils.getRequiredWebApplicationContext(servlet.getServletContext());
+        return ctx.getBean(name);
+    }
+	
+    public void initGridColsBase(ActionMapping mapping, ActionForm form,
+			HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+		
+		UserInfo userInfo = (UserInfo)request.getSession().getAttribute("user");
+		String gridId = request.getParameter("grid_id");
+		ExtService extService = (ExtService) getBean("extService");
+		String userId = null;
+		String results =null;
+		if(userInfo!=null){
+			userId = userInfo.getUserId();
+		}
+		results=extService.getInitParameter(userId, gridId);
+		
+		response.setContentType("text/json;charset=UTF-8");
+		response.getWriter().write(results);
+		
+	}
+	public void saveGridColsBase(ActionMapping mapping, ActionForm form,
+			HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+		
+		UserInfo userInfo = (UserInfo)request.getSession().getAttribute("user");
+		String gridId = request.getParameter("grid_id");
+		String gridCols = request.getParameter("saveColumns"); 
+		ExtService extService = (ExtService) getBean("extService");
+
+		String userId = null;
+		String results =null;
+		if(userInfo!=null){
+			userId = userInfo.getUserId();
+		}
+		results=extService.saveGridColumns(userId, gridId, gridCols);
+		response.setContentType("text/json;charset=UTF-8");
+		response.getWriter().write(results);
+	}
+	
+	
+	/**
+	  * 导出Excel文档(单个Sheet)
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportExcel(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+	
+	
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		String start_date = (String)request.getAttribute("start_date");   // a by guo_cz for L518 on 20180919
+		String end_date = (String)request.getAttribute("end_date");
+		
+		queryVo = excelService.query(queryVo);
+
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			// L278  修改
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+			//	if(queryVo.getTemplate_Items_number()!=null){
+				list.add(queryVo.getTemplate_Items_number());
+			//	}
+			//	if(queryVo.getTemplate_Items_sum()!=null){
+				list.add(queryVo.getTemplate_Items_sum());
+			//	}
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		user.setStart_date(start_date);  // a by guo_cz for L518 on 20180919
+		user.setEnd_date(end_date);
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		
+		//A BY LIU_ZJ FOR L271 ON 20160229
+		//自定义制表人信息位置
+		// a by guo_cz for L278 on 20161124 begin
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+	    // a by guo_cz for L278 on 20161124 end
+		return mapping.findForward("exportDateExcel");
+//		return mapping.findForward("exportExcel");
+	}
+	
+	/**
+	  * 导出Excel文档(单个Sheet)
+	  * guo_cz
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportExcellls(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		System.out.println("expttemplatefile =" +expttemplatefile);
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		//A BY LIU_ZJ FOR L271 ON 20160229
+		//自定义制表人信息位置
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		// A by guo_cz for L329 20161026
+		return mapping.findForward("exportDateExcellls");
+//		return mapping.findForward("exportExcel");
+	}
+	
+	/**
+	  * 导出Excel文档(单个Sheet)
+	  * guo_cz (L433)
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward MonthlyTrafficExcel(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception { 
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		System.out.println("expttemplatefile =" +expttemplatefile);
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		//A BY LIU_ZJ FOR L271 ON 20160229
+		//自定义制表人信息位置
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		
+		return mapping.findForward("MonthlyTrafficExcel");
+	}
+	
+	
+	/**
+	  * 导出Excel文档(单个Sheet)
+	  * guo_cz 
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportExcelll(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		System.out.println("expttemplatefile =" +expttemplatefile);
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		//A BY LIU_ZJ FOR L271 ON 20160229
+		//自定义制表人信息位置
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		
+		return mapping.findForward("exportDateExcelll");
+//		return mapping.findForward("exportExcel");
+	}
+	
+	/**
+	  * 导出Excel文档(单个Sheet)
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportExcel7(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		System.out.println("expttemplatefile =" +expttemplatefile);
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		//A BY LIU_ZJ FOR L271 ON 20160229
+		//自定义制表人信息位置
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+	  //2016年5月24日15:58:55 a by wang_d
+		return mapping.findForward("exportExcel7");
+	}
+	
+	/**
+	  * 导出Excel文档(单个Sheet)
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportExcel6(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		System.out.println("expttemplatefile =" +expttemplatefile);
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		//A BY LIU_ZJ FOR L271 ON 20160229
+		//自定义制表人信息位置
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		
+		return mapping.findForward("exportExcel6");
+	}
+	
+	
+	/**
+	 * 银保--薪酬明细导出
+	 * 导数据是可以从第number+2行开始
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportExcel4(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+		throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		String number = (String)request.getAttribute("number");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("number", number);  //标识从第几行开始导数据
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		//A BY LIU_ZJ FOR L271 ON 20160229
+		//自定义制表人信息位置
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		
+		return mapping.findForward("exportDateExcel");
+	}
+
+	
+	/**
+	  * 考核管理(专用)
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportExcel3(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+		
+		String griditems=queryVo.getTemplate_Items();
+		String expttemplatefile=queryVo.getTemplate_file();
+		
+		String fileName = (String)request.getAttribute("fileName");
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		
+		user.setSysDate(taskManagerService.getFmtSysDate());
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		return mapping.findForward("exportAssessExcel");
+//		return mapping.findForward("exportExcel3");
+	}
+	
+
+
+	
+	
+	/**
+	  * 导出Excel文档(多个Sheet)
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportExcels(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+		
+		String griditems=queryVo.getTemplate_Items();
+		String expttemplatefile=queryVo.getTemplate_file();
+		String fileName = (String)request.getAttribute("fileName");
+		List<List<String>> list = (List<List<String>>)request.getAttribute("gridData");
+		user.setSysDate(taskManagerService.getFmtSysDate());
+		String MaxRecord="";
+		if(((String)request.getAttribute("gridId")).contains("0108"))
+			MaxRecord="10000";
+		else
+		    MaxRecord=Record(user,"98");
+			
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		//request.getSession().getServletContext().getRealPath("/")+
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		request.setAttribute("user", user);
+		// L278 g_cz begin
+		//自定义制表人信息位置 
+		if(this.selfTitle==true){
+			
+		}else{
+		request.setAttribute("selfTitle", this.selfTitle=true);   // =true
+		request.setAttribute("x_index", this.x_index=4);       // =4
+		request.setAttribute("y_index", this.y_index=0);       // =0
+	    reset();// 重置表单
+		}
+	//L278 g_cz end
+		
+//		return mapping.findForward("exportExcels");
+		return mapping.findForward("exportDataExcels");
+	}
+	
+	/**
+	  * 导出Excel文档(多个Sheet,并且每个Sheet的列标题不同,多个Sheet中的列标题数据库配置中用"&"分隔)
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward expExcels(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+		
+		String griditems=queryVo.getTemplate_Items();
+		String expttemplatefile=queryVo.getTemplate_file();
+		
+		String fileName = (String)request.getAttribute("fileName");
+		List<List<String>> list = (List<List<String>>)request.getAttribute("gridData");
+		user.setSysDate(taskManagerService.getFmtSysDate());
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		//request.getSession().getServletContext().getRealPath("/")+
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		request.setAttribute("user", user);
+		
+		return mapping.findForward("exportDataDiverseExcels");
+	}	
+	
+	/**
+	  * 手续费确认导出(团险专业)
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportCofimExcel(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+		
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		String agencyName = (String)request.getAttribute("agencyName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+				
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("agencyName", agencyName);//中介机构名称
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		//自定义制表人信息位置   L278 
+		request.setAttribute("selfTitle", this.selfTitle=true);
+		request.setAttribute("x_index", this.x_index=4);
+		request.setAttribute("y_index", this.y_index=0);
+		reset();
+		
+//		return mapping.findForward("exportCofimExcel");
+	//	return mapping.findForward("expDataCofimExcel");
+		
+		//	return mapping.findForward("exportDataExcel");
+		// L278 修改  
+		 return mapping.findForward("expDataCofimExcel");
+	}	                           
+	
+	/**
+	  * 导出excel文件
+	  * @param list<String>和列标题names[]
+	  */
+	@SuppressWarnings("unchecked")
+	public ActionForward writeExc(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+
+		String lables[] = (String[])request.getAttribute("lables");
+		String fileName = (String)request.getAttribute("fileName");
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("lables", lables);//列标题
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		
+		return mapping.findForward("writeDataExcel");
+	}
+	
+	
+	/**
+	 * 获得每页导出最大记录数
+	 */
+	
+	
+	public  String Record(UserInfo user,String parano){
+		String  Record="";
+		
+		SysparamterService SysParSer = (SysparamterService)getBean("sysparamterService");
+		
+		if(user.getBranchId()!=null&&user.getBranchId()!=""){
+			if(SysParSer.queryParamterValue(user.getChannelId(),parano,user.getBranchId())!=null&&SysParSer.queryParamterValue(user.getChannelId(),parano,user.getBranchId())!=""){
+				Record=SysParSer.queryParamterValue(user.getChannelId(),parano,user.getBranchId());
+			}else{
+				Record=SysParSer.queryParaValue(user.getChannelId(),parano);
+			}
+		}else{
+			Record=SysParSer.queryParaValue(user.getChannelId(),parano);
+		}
+		if(Record==null||Record.equals("")||Record.equals("0")){
+			Record="10000";
+		}
+		
+		
+		return Record;
+	}
+	
+	/**
+	 * 下载模板文件
+	 * */
+	public ActionForward downloadExcel(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+									 throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+		
+		String template= (String)request.getAttribute("template") + "_import";
+		queryVo.setTemplate_Id(template);
+
+		queryVo = excelService.query(queryVo);
+		
+		request.setAttribute("fileName", queryVo.getTemplate_Name());//下载模板文件名称
+		request.setAttribute("filePath", queryVo.getTemplate_file());//下载模板路径 
+	     return mapping.findForward("downloadExcel");	
+	}
+	/*
+	 * 续期执业证维护导入模板下载方法
+	 */
+	public ActionForward downloadExcelXQ(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			 throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+		
+		//String template= (String)request.getAttribute("template") + "_import";
+		String template= (String)request.getAttribute("template");
+		queryVo.setTemplate_Id(template);
+		
+		queryVo = excelService.query(queryVo);
+		
+		request.setAttribute("fileName", queryVo.getTemplate_Name());//下载模板文件名称
+		request.setAttribute("filePath", queryVo.getTemplate_file());//下载模板路径
+		
+		return mapping.findForward("downloadExcel");	
+	}
+/***********************************************************以下为新模板导出报表数据方法***********************************************************/	
+	/**
+	  * 新模板导出Excel文档(单个Sheet)
+	  * 
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportDataExcel(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+	
+		List<String> list = (List<String>)request.getAttribute("gridData");//得到导出数据
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);//查询模板地址
+		String griditems="";//数据库定义导出列
+		String expttemplatefile="";//模板地址
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();		
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目(数据库配置导出数据列)
+				//liu_hh on 20150616 for 导出个例,数字列
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());//导出需要合计的数据列
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());//得到制表日期(系统时间)
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", queryVo.getTemplate_Name());//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		//A BY LIU_ZJ FOR L271 ON 20160229
+		//自定义制表人信息位置
+		//by  lf
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		// a by guo_cz for L340 begin 
+		return mapping.findForward("exportExcells");
+		// a by guo_cz for L340 end
+	}
+	
+	/**
+	  * 导出excel文件		个险 按条件导出人员信息
+	  * @param list<String>和列标题names[]
+	  */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportSalesExcel(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+
+		String lables[] = (String[])request.getAttribute("lables");
+		String fileName = (String)request.getAttribute("fileName");
+		SalesInfo salesInfo = (SalesInfo)request.getAttribute("salesInfo");
+		SalesInfoService salesInfoService=(SalesInfoService) getBean("salesInfoService");
+		
+		String MaxRecord=Record(user,"98");				//获取当前机构允许每页Excel写入的最大记录数
+		String OnceRecord = Record(user,"44");				//获取当前机构允许每次查询的记录数
+		
+		request.setAttribute("salesInfoService", salesInfoService);
+		request.setAttribute("salesInfo", salesInfo);
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("lables", lables);//列标题
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("OnceRecord", OnceRecord);		
+		
+		return mapping.findForward("writeSalesExcel");
+	}
+	/**
+	  * 导出Excel文档(银保手续费单个Sheet)
+	  * */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportFeeExcel(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+		
+		QueryModel queryModel =(QueryModel)request.getAttribute("queryModel");
+
+//		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+//			
+//			if (list!=null){
+//				list.add(queryVo.getTemplate_Items());//导出项目
+//				list.add(queryVo.getTemplate_Items_number());
+//				list.add(queryVo.getTemplate_Items_sum());
+//			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");					//获取当前机构允许每页Excel写入的最大记录数
+		String OnceRecord = Record(user,"44");				//获取当前机构允许每次查询的记录数
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("OnceRecord", OnceRecord);
+
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		request.setAttribute("queryVo", queryVo);   //模版相应属性
+
+		request.setAttribute("queryModel", queryModel);   //查询约束
+		
+		return mapping.findForward("exportFeeDateExcel");
+	}
+	/**
+	 * 动态表头Excel
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportDynamicHeadExcel(ActionMapping mapping
+			                                  , ActionForm form
+			                                  , HttpServletRequest request
+			                                  , HttpServletResponse response)throws Exception {
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		user.setSysDate(taskManagerService.getFmtSysDate());//得到制表日期(系统时间)
+		
+		List<String> list = (List<String>)request.getAttribute("gridData");//得到导出数据
+		String fileName = (String)request.getAttribute("fileName");
+		String gridsumitems = (String)request.getAttribute("gridsumitems");
+		String write_rows = (String)request.getAttribute("write_rows");
+		List<DynamicHead> dhs = (List<DynamicHead>)request.getAttribute("DynamicHeads");
+		list.add(DynamicHead.getDynamicHeadCodes(dhs));//导出项目(数据库配置导出数据列)
+		list.add("");
+		//A by zhu_jp for R202/R203 on 2013-7-16 begin
+		if("03".equals(user.getChannelId())&&"薪酬明细".equals(fileName)){
+			QueryModel queryModel = (QueryModel)request.getAttribute("queryModel");
+			user.setBranchName(queryModel.getBranch_name());      //查询的机构名称
+			user.setBranchIdTmb(queryModel.getStat_month());  //查询的年月
+		}
+		//A by zhu_jp for R202/R203 on 2013-7-16 end
+		String MaxRecord=Record(user,"98");
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("write_rows", write_rows);
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("DynamicHeads", dhs);
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("expttemplatefile", "/sharePage/exportTemplate/share/10000000000000_动态表头模板.xls");//模板文件地址
+		request.setAttribute("user", user);
+		
+		return mapping.findForward("exportDynamicHeadDateExcel");
+	}
+	/** A by cyh for L286 on 20160616
+	 * 导---导出EXCEL文件
+	 * 导数据是可以从第number行开始
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public ActionForward ExcelDataNew(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+		throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		String number = (String)request.getAttribute("number");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("number", number);  //标识从第几行开始导数据
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		
+		return mapping.findForward("ExcelDataNew");
+	}
+	/** A by liu_jl for L244 on 20160712
+	 * 导出电销孤儿单分配保单信息---导出EXCEL文件
+	 * 导数据是可以从第number行开始
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportAsPersonExcel(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+		throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		String number = (String)request.getAttribute("number");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("number", number);  //标识从第几行开始导数据
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		
+		return mapping.findForward("ExcelAsPerson");
+	}
+	public ActionForward ExcelTXData(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+			T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+			UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+			
+			TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+			T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+			List<String> list = (List<String>)request.getAttribute("gridData");
+			String fileName = (String)request.getAttribute("fileName");
+			String number = (String)request.getAttribute("number");
+			
+			queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+			queryVo = excelService.query(queryVo);
+			String griditems="";
+			String expttemplatefile="";
+			if (queryVo!=null){
+				griditems=queryVo.getTemplate_Items();
+				expttemplatefile=queryVo.getTemplate_file();
+				if (list!=null){
+					list.add(queryVo.getTemplate_Items());//导出项目
+					list.add(queryVo.getTemplate_Items_number());
+					list.add(queryVo.getTemplate_Items_sum());
+				}
+				
+				user.setSysDate(taskManagerService.getFmtSysDate());
+			}
+			
+			String MaxRecord=Record(user,"98");
+			
+			request.setAttribute("MaxRecord", MaxRecord);
+			request.setAttribute("number", number);  //标识从第几行开始导数据
+			request.setAttribute("gridData", list);//导出的数据
+			request.setAttribute("fileName", fileName);//导出文件名
+			request.setAttribute("griditems", griditems);//需要导出的列
+			request.setAttribute("user", user);
+			
+			request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+			request.setAttribute("selfTitle", this.selfTitle=true);
+			request.setAttribute("x_index", this.x_index=4);
+			request.setAttribute("y_index", this.y_index=0);
+		    reset();
+			
+			return mapping.findForward("ExcelTXData");
+		}
+	
+	//团险在第三行导出  by j_yc
+	public ActionForward ExcelTXDataTwo(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+			T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+			UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+			
+			TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+			T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+			List<String> list = (List<String>)request.getAttribute("gridData");
+			String fileName = (String)request.getAttribute("fileName");
+			String number = (String)request.getAttribute("number");
+			
+			queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+			queryVo = excelService.query(queryVo);
+			String griditems="";
+			String expttemplatefile="";
+			
+			if (queryVo!=null){
+				griditems=queryVo.getTemplate_Items();
+				expttemplatefile=queryVo.getTemplate_file();
+				
+				if (list!=null){
+					list.add(queryVo.getTemplate_Items());//导出项目
+					list.add(queryVo.getTemplate_Items_number());
+					list.add(queryVo.getTemplate_Items_sum());
+				}
+				
+				user.setSysDate(taskManagerService.getFmtSysDate());
+			}
+			
+			String MaxRecord=Record(user,"98");
+			
+			request.setAttribute("MaxRecord", MaxRecord);
+			request.setAttribute("number", number);  //标识从第几行开始导数据
+			request.setAttribute("gridData", list);//导出的数据
+			request.setAttribute("fileName", fileName);//导出文件名
+			request.setAttribute("griditems", griditems);//需要导出的列
+			request.setAttribute("user", user);
+			
+			request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+			request.setAttribute("selfTitle", this.selfTitle);
+			request.setAttribute("x_index", this.x_index);
+			request.setAttribute("y_index", this.y_index);
+		    reset();
+			
+			return mapping.findForward("ExcelTXDataTwo");
+		}
+		
+	    //A  by j_yc for L243
+		public ActionForward ExcelTXDataFour(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+				throws Exception {
+
+				T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+				UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+				
+				TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+				T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+				List<String> list = (List<String>)request.getAttribute("gridData");
+				String fileName = (String)request.getAttribute("fileName");
+				String number = (String)request.getAttribute("number");
+				
+				queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+				queryVo = excelService.query(queryVo);
+				String griditems="";
+				String expttemplatefile="";
+				
+				if (queryVo!=null){
+					griditems=queryVo.getTemplate_Items();
+					expttemplatefile=queryVo.getTemplate_file();
+					
+					if (list!=null){
+						list.add(queryVo.getTemplate_Items());//导出项目
+						list.add(queryVo.getTemplate_Items_number());
+						list.add(queryVo.getTemplate_Items_sum());
+					}
+					
+					user.setSysDate(taskManagerService.getFmtSysDate());
+				}
+				
+				String MaxRecord=Record(user,"98");
+				
+				request.setAttribute("MaxRecord", MaxRecord);
+				request.setAttribute("number", number);  //标识从第几行开始导数据
+				request.setAttribute("gridData", list);//导出的数据
+				request.setAttribute("fileName", fileName);//导出文件名
+				request.setAttribute("griditems", griditems);//需要导出的列
+				request.setAttribute("user", user);
+				
+				request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+				request.setAttribute("selfTitle", this.selfTitle);
+				request.setAttribute("x_index", this.x_index);
+				request.setAttribute("y_index", this.y_index);
+			    reset();
+				
+				return mapping.findForward("ExcelTXDataFour");
+			}
+		
+			
+	/** A by liu_jl for L265 on 20160527
+	 * 导出考核预警结果---导出EXCEL文件
+	 * 导数据是可以从第number行开始
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public ActionForward exportAssessDetailExcel(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+		throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		String number = (String)request.getAttribute("number");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("number", number);  //标识从第几行开始导数据
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		
+		return mapping.findForward("ExcelAssessWarm");
+	}
+	
+	/** A by cyh for L265 on 20160527
+	 * 导---导出EXCEL文件
+	 * 导数据是可以从第number行开始
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public ActionForward ExcelAssessWarmQry(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+		throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		String number = (String)request.getAttribute("number");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("number", number);  //标识从第几行开始导数据
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		
+		return mapping.findForward("ExcelAssessWarmQry");
+	}
+	
+		@SuppressWarnings("unchecked")
+	public ActionForward exportExcelTwo(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		System.out.println("expttemplatefile =" +expttemplatefile);
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		//A BY LIU_ZJ FOR L271 ON 20160229
+		//自定义制表人信息位置
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		
+		return mapping.findForward("ExcelTXDataTwo");
+	}
+		
+		@SuppressWarnings("unchecked")
+		public ActionForward exportExcelThree(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+				throws Exception {
+
+			T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+			UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+			
+			TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+			T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+			
+			List<String> list = (List<String>)request.getAttribute("gridData");
+			String fileName = (String)request.getAttribute("fileName");
+			
+			queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+			queryVo = excelService.query(queryVo);
+
+			String griditems="";
+			String expttemplatefile="";
+			
+			if (queryVo!=null){
+				griditems=queryVo.getTemplate_Items();
+				expttemplatefile=queryVo.getTemplate_file();
+				
+				if (list!=null){
+					list.add(queryVo.getTemplate_Items());//导出项目
+					list.add(queryVo.getTemplate_Items_number());
+					list.add(queryVo.getTemplate_Items_sum());
+				}
+				
+				user.setSysDate(taskManagerService.getFmtSysDate());
+			}
+			
+			String MaxRecord=Record(user,"98");
+			
+			request.setAttribute("MaxRecord", MaxRecord);
+			
+			request.setAttribute("gridData", list);//导出的数据
+			request.setAttribute("fileName", fileName);//导出文件名
+			request.setAttribute("griditems", griditems);//需要导出的列
+			request.setAttribute("user", user);
+			System.out.println("expttemplatefile =" +expttemplatefile);
+			request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+			
+			//A BY LIU_ZJ FOR L271 ON 20160229
+			//自定义制表人信息位置
+			request.setAttribute("selfTitle", this.selfTitle);
+			request.setAttribute("x_index", this.x_index);
+			request.setAttribute("y_index", this.y_index);
+		    reset();
+			
+			return mapping.findForward("ExcelTXDataThree");
+		}
+		/**
+		  * 导出Excel文档(多个Sheet)
+		  * guo_cz
+		  * */
+		@SuppressWarnings("unchecked")
+		public ActionForward exportFiveExcel(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+				throws Exception {
+
+			T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+			UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+			
+			TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+			T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+			
+			queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+			queryVo = excelService.query(queryVo);
+			
+			String griditems=queryVo.getTemplate_Items();
+			String expttemplatefile=queryVo.getTemplate_file();
+			String fileName = (String)request.getAttribute("fileName");
+			List<List<String>> list = (List<List<String>>)request.getAttribute("gridData");
+			user.setSysDate(taskManagerService.getFmtSysDate());
+			String MaxRecord="";
+			if(((String)request.getAttribute("gridId")).contains("0108"))
+				MaxRecord="10000";
+			else
+			    MaxRecord=Record(user,"98");
+				
+			request.setAttribute("MaxRecord", MaxRecord);
+			request.setAttribute("gridData", list);//导出的数据
+			request.setAttribute("fileName", fileName);//导出文件名
+			request.setAttribute("griditems", griditems);//需要导出的列
+			//request.getSession().getServletContext().getRealPath("/")+
+			request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+			request.setAttribute("user", user);
+			//自定义制表人信息位置                                                     
+			request.setAttribute("selfTitle", this.selfTitle);   
+			request.setAttribute("x_index", this.x_index);      
+			request.setAttribute("y_index", this.y_index);  
+		    reset();// 重置表单
+			
+			return mapping.findForward("exportFiveExcel");
+		}
+			/**
+		  * 新模板导出Excel文档(单个Sheet)
+		  * 
+		  * */
+		@SuppressWarnings("unchecked")
+		public ActionForward exportRankDataExcel(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+				throws Exception {
+
+			T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+			UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+			TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+			T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+		
+			List<String> list = (List<String>)request.getAttribute("gridData");//得到导出数据
+			
+			queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+			queryVo = excelService.query(queryVo);//查询模板地址
+			String griditems="";//数据库定义导出列
+			String expttemplatefile="";//模板地址
+			
+			if (queryVo!=null){
+				griditems=queryVo.getTemplate_Items();
+				expttemplatefile=queryVo.getTemplate_file();		
+				if (list!=null){
+					list.add(queryVo.getTemplate_Items());//导出项目(数据库配置导出数据列)
+					//liu_hh on 20150616 for 导出个例,数字列
+					list.add(queryVo.getTemplate_Items_number());
+					list.add(queryVo.getTemplate_Items_sum());//导出需要合计的数据列
+				}
+				
+				user.setSysDate(taskManagerService.getFmtSysDate());//得到制表日期(系统时间)
+			}
+			
+			String MaxRecord=Record(user,"98");
+			
+			
+			request.setAttribute("MaxRecord", MaxRecord);
+			
+			request.setAttribute("gridData", list);//导出的数据
+			request.setAttribute("fileName", queryVo.getTemplate_Name());//导出文件名
+			request.setAttribute("griditems", griditems);//需要导出的列
+			request.setAttribute("user", user);
+			
+			request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+			//A BY LIU_ZJ FOR L271 ON 20160229
+			//自定义制表人信息位置
+			//by  lf
+			request.setAttribute("selfTitle", this.selfTitle);
+			request.setAttribute("x_index", this.x_index);
+			request.setAttribute("y_index", this.y_index);
+		    reset();
+			// a by guo_cz for L340 begin 
+			return mapping.findForward("ExcelRankData");
+			// a by guo_cz for L340 end
+		}
+		
+		/**
+		  * @Description L394 导出数据序号不自动生成，一行数据一行表头
+		  * @author j_yc
+		  * @date 2017年4月24日
+		  * */
+		@SuppressWarnings("unchecked")
+		public ActionForward exportExcel394(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+				throws Exception {
+
+			T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+			UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+			
+			TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+			T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+		
+		
+			List<String> list = (List<String>)request.getAttribute("gridData");
+			String fileName = (String)request.getAttribute("fileName");
+			
+			queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+			
+			
+			queryVo = excelService.query(queryVo);
+
+			String griditems="";
+			String expttemplatefile="";
+			
+			if (queryVo!=null){
+				griditems=queryVo.getTemplate_Items();
+				expttemplatefile=queryVo.getTemplate_file();
+				
+				// L278  修改
+				if (list!=null){
+					list.add(queryVo.getTemplate_Items());//导出项目
+				//	if(queryVo.getTemplate_Items_number()!=null){
+					list.add(queryVo.getTemplate_Items_number());
+				//	}
+				//	if(queryVo.getTemplate_Items_sum()!=null){
+					list.add(queryVo.getTemplate_Items_sum());
+				//	}
+				}
+				
+				user.setSysDate(taskManagerService.getFmtSysDate());
+			}
+			
+			String MaxRecord=Record(user,"98");
+			
+			request.setAttribute("MaxRecord", MaxRecord);
+			
+			request.setAttribute("gridData", list);//导出的数据
+			request.setAttribute("fileName", fileName);//导出文件名
+			request.setAttribute("griditems", griditems);//需要导出的列
+			request.setAttribute("user", user);
+			request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+			
+			//A BY LIU_ZJ FOR L271 ON 20160229
+			//自定义制表人信息位置
+			
+			request.setAttribute("selfTitle", this.selfTitle);
+			request.setAttribute("x_index", this.x_index);
+			request.setAttribute("y_index", this.y_index);
+		    reset();
+		    
+			return mapping.findForward("exportDateExcel394");
+		}
+		
+		//m y liu_xj for L429 20170511 薪酬项发放方式设置，导出excel方法
+		public ActionForward ExcelTXDataPayment(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+		throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		String number = (String)request.getAttribute("number");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+		String griditems="";
+		String expttemplatefile="";
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("number", number);  //标识从第几行开始导数据
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		request.setAttribute("selfTitle", this.selfTitle=true);
+		request.setAttribute("x_index", this.x_index=4);
+		request.setAttribute("y_index", this.y_index=0);
+	    reset();
+		
+		return mapping.findForward("ExcelTXDataPayment");
+		}
+		/**
+		 * 加款扣款
+		 * @param mapping
+		 * @param form
+		 * @param request
+		 * @param response
+		 * @return
+		 * @throws Exception
+		 * guo_cz(L416)
+		 */
+		public ActionForward ExcelQry(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+		throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		String number = (String)request.getAttribute("number");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		request.setAttribute("number", number);  //标识从第几行开始导数据
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		
+		return mapping.findForward("ExcelQry");
+	}
+		
+	/**
+	 * @功能：宽末保单信息导出 L542
+	 * @author li_br
+	 */
+	public ActionForward exportExcelThreeWarn(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+				list.add(queryVo.getTemplate_Items_number());
+				list.add(queryVo.getTemplate_Items_sum());
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		System.out.println("expttemplatefile =" +expttemplatefile);
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		//A BY LIU_ZJ FOR L271 ON 20160229
+		//自定义制表人信息位置
+		request.setAttribute("selfTitle", this.selfTitle);
+		request.setAttribute("x_index", this.x_index);
+		request.setAttribute("y_index", this.y_index);
+	    reset();
+		
+		return mapping.findForward("ExcelXqDataThreeWarn");
+	}	
+	
+	/**
+	 * @功能：个人预考核结果导出 L542
+	 * @author li_br
+	 */
+	public ActionForward exportAssessWarn(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+
+		
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		queryVo = excelService.query(queryVo);
+
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		System.out.println("expttemplatefile =" +expttemplatefile);
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		return mapping.findForward("ExcelXqAssessWarn");
+	}
+	/**
+		  * 导出Excel文档(单个Sheet)
+		  * */
+		@SuppressWarnings("unchecked")
+	    public ActionForward exportExcel100(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+		UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+		
+		TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+		T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+	
+	
+		List<String> list = (List<String>)request.getAttribute("gridData");
+		String fileName = (String)request.getAttribute("fileName");
+		
+		queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+		String start_date = (String)request.getAttribute("start_date");   // a by guo_cz for L518 on 20180919
+		String end_date = (String)request.getAttribute("end_date");
+		
+		queryVo = excelService.query(queryVo);
+
+		String griditems="";
+		String expttemplatefile="";
+		
+		if (queryVo!=null){
+			griditems=queryVo.getTemplate_Items();
+			expttemplatefile=queryVo.getTemplate_file();
+			
+			// L278  修改
+			if (list!=null){
+				list.add(queryVo.getTemplate_Items());//导出项目
+			//	if(queryVo.getTemplate_Items_number()!=null){
+				list.add(queryVo.getTemplate_Items_number());
+			//	}
+			//	if(queryVo.getTemplate_Items_sum()!=null){
+				list.add(queryVo.getTemplate_Items_sum());
+			//	}
+			}
+			
+			user.setSysDate(taskManagerService.getFmtSysDate());
+		}
+		
+		user.setStart_date(start_date);  // a by guo_cz for L518 on 20180919
+		user.setEnd_date(end_date);
+		String MaxRecord=Record(user,"98");
+		
+		request.setAttribute("MaxRecord", MaxRecord);
+		
+		request.setAttribute("gridData", list);//导出的数据
+		request.setAttribute("fileName", fileName);//导出文件名
+		request.setAttribute("griditems", griditems);//需要导出的列
+		request.setAttribute("user", user);
+		request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+		
+		
+		//A BY LIU_ZJ FOR L271 ON 20160229
+		//自定义制表人信息位置
+		// a by guo_cz for L278 on 20161124 begin
+		request.setAttribute("selfTitle", this.selfTitle=true);
+		request.setAttribute("x_index", this.x_index=4);
+		request.setAttribute("y_index", this.y_index=0);
+	    reset();
+	    // a by guo_cz for L278 on 20161124 end
+		return mapping.findForward("exportDateExcel");
+//			return mapping.findForward("exportExcel");
+	}	
+		
+		/**
+		  * 新模板导出Excel文档(单个Sheet)
+		  * add by song_pf for L814大个险 W1005 on 20190507
+		  * */
+		@SuppressWarnings("unchecked")
+		public ActionForward exportDataExcelW1005(ActionMapping mapping, ActionForm form,HttpServletRequest request, HttpServletResponse response)
+				throws Exception {
+
+			T99ExcelTemplateInfo queryVo = new T99ExcelTemplateInfo();
+			UserInfo  user=(UserInfo)request.getSession().getAttribute("user");
+			TaskManagerService taskManagerService = (TaskManagerService) getBean("taskManagerService");
+			T99ExcelTemplateInfoManager excelService=(T99ExcelTemplateInfoManager)this.getBean("t99ExcelTemplateInfoImpl");
+		
+			List<String> list = (List<String>)request.getAttribute("gridData");//得到导出数据
+			
+			queryVo.setTemplate_Id(((String)request.getAttribute("gridId")));
+			queryVo = excelService.query(queryVo);//查询模板地址
+			String griditems="";//数据库定义导出列
+			String expttemplatefile="";//模板地址
+			
+			if (queryVo!=null){
+				griditems=queryVo.getTemplate_Items();
+				expttemplatefile=queryVo.getTemplate_file();		
+				if (list!=null){
+					list.add(queryVo.getTemplate_Items());//导出项目(数据库配置导出数据列)
+					//liu_hh on 20150616 for 导出个例,数字列
+					list.add(queryVo.getTemplate_Items_number());
+					list.add(queryVo.getTemplate_Items_sum());//导出需要合计的数据列
+				}
+				
+				user.setSysDate(taskManagerService.getFmtSysDate());//得到制表日期(系统时间)
+			}
+			
+			String MaxRecord=Record(user,"98");
+			
+			
+			request.setAttribute("MaxRecord", MaxRecord);
+			
+			request.setAttribute("gridData", list);//导出的数据
+			request.setAttribute("fileName", queryVo.getTemplate_Name());//导出文件名
+			request.setAttribute("griditems", griditems);//需要导出的列
+			request.setAttribute("user", user);
+			
+			request.setAttribute("expttemplatefile", expttemplatefile);//模板文件地址
+			//A BY LIU_ZJ FOR L271 ON 20160229
+			//自定义制表人信息位置
+			//by  lf
+			request.setAttribute("selfTitle", this.selfTitle);
+			request.setAttribute("x_index", this.x_index);
+			request.setAttribute("y_index", this.y_index);
+		    reset();
+			// a by guo_cz for L340 begin 
+			return mapping.findForward("exportExcellsW1005");
+			// a by guo_cz for L340 end
+		}
+}

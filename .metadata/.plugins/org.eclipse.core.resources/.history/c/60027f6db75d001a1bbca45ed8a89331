@@ -1,0 +1,6 @@
+# Resources for parameter 'cn.hao.struts.ApplicationResources'
+# Project MyStruct1Project
+mid.input.null=<li>\u8F93\u5165\u7684\u7528\u6237\u540D\u4E3A\u7A7A</li>
+password.input.null=<li>\u8F93\u5165\u7684\u5BC6\u7801\u4E3A\u7A7A</li>
+login.success=<li>\u767B\u5F55\u6210\u529F</li>
+login.failed=<li>\u767B\u5F55\u5931\u8D25</li>

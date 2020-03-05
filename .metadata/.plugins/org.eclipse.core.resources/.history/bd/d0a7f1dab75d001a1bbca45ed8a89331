@@ -1,0 +1,30 @@
+package myssiProject.com.hao.detp.action;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionForward;
+import org.apache.struts.action.ActionMapping;
+import org.apache.struts.actions.DispatchAction;
+
+import myssiProject.com.hao.detp.actionForm.DeptActionForm;
+import myssiProject.com.hao.detp.vo.DeptInfo;
+
+public class DeptAction extends DispatchAction {
+
+	public ActionForward execute(ActionMapping actionMapping,ActionForm form,HttpServletRequest request,HttpServletResponse response) {
+		System.out.println("进入action方法,处理开始============");
+		DeptActionForm deptActionForm = (DeptActionForm)form;
+		DeptInfo deptInfo = deptActionForm.getDeptInfo();
+		System.out.println("aaaaaaaaaaaaaaa" + deptInfo.toString());
+		if (null != deptInfo && null != deptInfo.getDeptNo()) {
+			request.setAttribute("msg", super.getResources(request).getMessage("insert.success"));
+			return actionMapping.findForward("success");
+		}else {
+			request.setAttribute("msg", super.getResources(request).getMessage("insert.failed"));
+			return actionMapping.findForward("failed");
+		}
+	}
+	
+}

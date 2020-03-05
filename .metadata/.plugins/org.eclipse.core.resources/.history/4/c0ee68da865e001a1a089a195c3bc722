@@ -1,0 +1,113 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<%@page import="java.util.List"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="myssiProject.com.hao.detp.vo.DeptInfo"%>
+
+
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<!-- <SCRIPT src="resource/jquery/jquery.easyui.min.js" type=text/javascript></SCRIPT> -->
+
+	<script type="text/javascript">
+	$(function(){
+		var locationPath = "localhost:8080/myssiProject";
+		//定义Action的URL
+	    insert = function (){
+			debugger;
+	    	var deptNo =  document.getElementById("deptNo").value;
+	    	var dName =  document.getElementById("dName").value;
+	    	var loc =  document.getElementById("loc").value;
+			document.all.dept.action=locationPath+"/dept.do?method=insert"
+										+"&deptNo="+deptNo
+										+"&dName="+dName
+										+"&loc="+loc;
+			document.all.dept.submit();
+		}
+	    function deleteInfo(){
+			debugger;
+	    	var deptNo =  document.getElementById("deptNo").value;
+	    	var dName =  document.getElementById("dName").value;
+	    	var loc =  document.getElementById("loc").value;
+			document.all.dept.action=locationPath+"/dept.do?method=delete"
+										+"&deptNo="+deptNo
+										+"&dName="+dName
+										+"&loc="+loc;
+			document.all.dept.submit();
+		}
+	    function update(){
+			debugger;
+	    	var deptNo =  document.getElementById("deptNo").value;
+	    	var dName =  document.getElementById("dName").value;
+	    	var loc =  document.getElementById("loc").value;
+			document.all.dept.action=locationPath+"/dept.do?method=update"
+										+"&deptNo="+deptNo
+										+"&dName="+dName
+										+"&loc="+loc;
+			document.all.dept.submit();
+		}
+	    function query(){
+			debugger;
+	    	var deptNo =  document.getElementById("deptNo").value;
+	    	var dName =  document.getElementById("dName").value;
+	    	var loc =  document.getElementById("loc").value;
+			document.all.dept.action=locationPath+"/dept.do?method=list"
+										+"&deptNo="+deptNo
+										+"&dName="+dName
+										+"&loc="+loc;
+			document.all.dept.submit();
+		}
+	});
+	
+	</script>
+</head>
+<body>
+	<form id="dept" name ="dept"  method="post" action="dept.do" >
+	<!-- <form action="dept.do"  method="post" focus="dept"> -->
+		<table>
+			<tr>
+				<td>部门编号:  </td>
+				 <td><input type="text" id="deptNo" name="deptInfo.deptNo"></td>
+			</tr>		
+			<tr>
+				<td>部门名称:  </td>
+				 <td><input type="text" id="dName" name="deptInfo.dName"></td>
+			</tr>		
+			<tr>
+				<td>部门位置:  </td>
+				 <td><input type="text" id="loc" name="deptInfo.loc"></td>
+			</tr>		
+		</table>
+		<input type="submit" value="查询">
+	<!-- <div>
+		<button class="btn" name="insert" value="1">
+			新增
+		</button>
+		<button class="btn" name="delete" value="2">
+			删除
+		</button>
+		<button class="btn" name="update" value="3">
+			修改
+		</button>
+		<button class="btn" name="query" value="4">
+			查询
+		</button>
+	</div> -->
+		<!-- <button class="btn" name="insert" onclick="insert()">
+			<span>新增</span>
+		</button>
+		<button class="btn" name="delete" onclick="deleteInfo()">
+			<span>删除</span>
+		</button>
+		<button class="btn" name="update" onclick="update()">
+			<span>修改</span>
+		</button>
+		<button class="btn" name="query" onclick="query()">
+			<span>查询</span>
+		</button> -->
+	</form>	
+</body>
+</html>

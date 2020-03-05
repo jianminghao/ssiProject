@@ -1,0 +1,23 @@
+package myssiProject.com.hao.detp.service;
+
+import myssiProject.com.hao.detp.vo.DeptInfo;
+
+public class DeptManagerImpl implements DeptManager {
+
+	private DeptDao deptDao;
+
+	public void setDeptDao(DeptDao deptDao) {
+		this.deptDao = deptDao;
+	}
+
+
+
+	@Override
+	public void insertDeptInfo(DeptInfo deptInFo) {
+		
+		
+		
+
+	}
+
+}

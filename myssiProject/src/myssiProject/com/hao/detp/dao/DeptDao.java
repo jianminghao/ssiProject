@@ -1,0 +1,17 @@
+package myssiProject.com.hao.detp.dao;
+
+import java.util.List;
+
+import myssiProject.com.hao.detp.vo.DeptInfo;
+
+public interface DeptDao {
+
+	void insertDeptInfo(DeptInfo deptInfo);
+
+	List<DeptInfo> queryAll();
+	
+	int updateByDeptNo(DeptInfo deptInFo);
+	
+	int deleteByByDeptNo(Integer deptNo);
+	
+}

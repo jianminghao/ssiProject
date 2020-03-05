@@ -1,0 +1,43 @@
+package myssiProject.com.hao.detp.service.impl;
+
+import java.util.List;
+
+import myssiProject.com.hao.detp.dao.DeptDao;
+import myssiProject.com.hao.detp.service.DeptManager;
+import myssiProject.com.hao.detp.vo.DeptInfo;
+
+public class DeptManagerImpl implements DeptManager {
+
+	private DeptDao deptDao;
+
+	public void setDeptDao(DeptDao deptDao) {
+		this.deptDao = deptDao;
+	}
+
+	@Override
+	public void insertDeptInfo(DeptInfo deptInfo) {
+		
+		deptDao.insertDeptInfo(deptInfo);
+		
+
+	}
+
+	@Override
+	public List<DeptInfo> queryAll() {
+		List<DeptInfo> queryAll = deptDao.queryAll();
+		return queryAll;
+	}
+
+	@Override
+	public int updateByDeptNo(DeptInfo deptInFo) {
+		int i = deptDao.updateByDeptNo(deptInFo);
+		return i;
+	}
+
+	@Override
+	public int deleteByByDeptNo(Integer deptNo) {
+		int i = deptDao.deleteByByDeptNo(deptNo);
+		return i;
+	}
+
+}

@@ -1,0 +1,49 @@
+
+package myssiProject.com.hao.detp.action;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionForward;
+import org.apache.struts.action.ActionMapping;
+import org.apache.struts.actions.DispatchAction;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+
+public class BaseDispatchAction extends DispatchAction {
+    private static final int List = 0;
+    
+    private boolean selfTitle = false;
+	private int x_index = 0;
+	private int y_index = 0;
+	/**
+	 * A BY LIU_ZJ FOR L271 ON 20160229
+	 * 自定义制表人信息的位置
+	 * @param selfTitle
+	 * @param x_index
+	 * @param y_index
+	 */
+	public void setSelfTitle(boolean selfTitle, int x_index, int y_index){
+		this.selfTitle = selfTitle;
+		this.x_index = x_index;
+		this.y_index = y_index;
+	}
+	/**
+	 * 复位
+	 */
+	public void reset(){
+		this.selfTitle = false;
+		this.x_index = 0;
+		this.y_index = 0;
+	}
+   
+	public Object getBean(String name) {
+        ApplicationContext ctx = 
+            WebApplicationContextUtils.getRequiredWebApplicationContext(servlet.getServletContext());
+        return ctx.getBean(name);
+    }
+	
+}

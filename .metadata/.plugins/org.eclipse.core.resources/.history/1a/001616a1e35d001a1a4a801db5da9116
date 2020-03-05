@@ -1,0 +1,70 @@
+package myssiProject.com.hao.detp.action;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionForward;
+import org.apache.struts.action.ActionMapping;
+import org.apache.struts.actions.DispatchAction;
+
+import myssiProject.com.hao.detp.actionForm.DeptActionForm;
+import myssiProject.com.hao.detp.service.DeptManager;
+import myssiProject.com.hao.detp.vo.DeptInfo;
+
+public class DeptAction extends BaseDispatchAction {
+	
+	
+	public ActionForward insert(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response) {
+		System.out.println("===============进入insert方法,处理开始============");
+		DeptActionForm deptActionForm = (DeptActionForm)form;
+		DeptInfo deptInfo = deptActionForm.getDeptInfo();
+		DeptManager deptManager = (DeptManager) getBean("deptManager");
+		
+		try {
+			deptManager.insertDeptInfo(deptInfo);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return mapping.findForward("success");
+	}
+	public ActionForward list(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response) {
+		System.out.println("===============进入list方法,处理开始============");
+		DeptActionForm deptActionForm = (DeptActionForm)form;
+		DeptInfo deptInfo = deptActionForm.getDeptInfo();
+		DeptManager deptManager = (DeptManager) getBean("deptManager");
+		
+		try {
+			deptManager.queryAll();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return mapping.findForward("success");
+	}
+	public ActionForward update(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response) {
+		System.out.println("===============进入update方法,处理开始============");
+		DeptActionForm deptActionForm = (DeptActionForm)form;
+		DeptInfo deptInfo = deptActionForm.getDeptInfo();
+		DeptManager deptManager = (DeptManager) getBean("deptManager");
+		try {
+			deptManager.updateByDeptNo(deptInfo);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return mapping.findForward("success");
+	}
+	public ActionForward delete(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response) {
+		System.out.println("===============进入delete方法,处理开始============");
+		DeptActionForm deptActionForm = (DeptActionForm)form;
+		DeptInfo deptInfo = deptActionForm.getDeptInfo();
+		DeptManager deptManager = (DeptManager) getBean("deptManager");
+		
+		try {
+			deptManager.deleteByDeptNo(deptInfo);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return mapping.findForward("success");
+	}
+	
+}

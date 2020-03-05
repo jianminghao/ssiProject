@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
+    "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="deptSQL">
+	<typeAlias alias="deptInfo" type="myssiProject.com.hao.detp.vo.DeptInfo"/>
+
+	<insert id="insertDeptInfo" parameterClass="deptInfo">
+		INSERT INTO DEPT(DEPTNO,DNAME,LOC) VALUES(#deptNo#,#dName#,#loc#)
+	</insert>
+	
+	<select id="queryAll">
+		select * from DEPT
+	</select>
+	
+	<update id="updateByDeptNo" parameterClass="deptInfo">
+		update DEPT set DNAME = #dName# , LOC = #loc# where DEPTNO = #deptNo#
+	</update>
+	
+</sqlMap>

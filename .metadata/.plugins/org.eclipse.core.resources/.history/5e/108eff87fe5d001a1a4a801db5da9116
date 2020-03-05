@@ -1,0 +1,98 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<%@page import="java.util.List"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="myssiProject.com.hao.detp.vo.DeptInfo"%>
+
+<%
+	List<DeptInfo> deptInfoList = new ArrayList();
+	if (request.getAttribute("liFunctionConfirmInfo") != null) {
+		deptInfoList = (List<DeptInfo>) request.getAttribute("liFunctionConfirmInfo");
+	}
+%>
+
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<SCRIPT src="resource/jquery/jquery.easyui.min.js" type=text/javascript></SCRIPT>
+</head>
+<body>
+	<form id="dept" name ="dept"  method="post" action="" >
+		<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+  			<tr class="h30">
+    			<td vAlign="top">
+	 				<% if (liFunctionConfirmInfo!=null && liFunctionConfirmInfo.size() > 0) { %>
+					<table width="95%" border="1" align="center" cellpadding="2" cellspacing="0" class="table_bk">
+  						<tr class="h30" align="center" bgcolor="#dbe8fb">
+  		  					<td colspan="7">
+  		  						<table width="95%" border="0">
+            						<tr class="h30" align="center">
+              							<td align="left" width="1%" nowrap="nowrap">
+<!--               								<input type="button" name="confirm" id="btnConfirm" value="开始计税" onclick="startTaxConfirm()"/> -->
+              								<button class="btn" name="confirm" id="btnConfirm" onclick="startTaxConfirm()"><span>开始计税</span></button>
+              								<input type="hidden" name="confirmBranch" id="confirmBranch"/>
+              							</td>
+              							<td>
+              								<textarea id="msg" style="display:none;height:auto; border:none; background:none; overflow:hidden; width:95%; color:#FF0000"></textarea>
+              							</td>
+            						</tr>
+          						</table>
+          					</td>
+	   					</tr>
+  						<tr class="h30" align="center" bgcolor="#dbe8fb">
+  		  					<td><input type="checkbox" class="checkbox_YB" name="selectAll" onClick="checkAll(this)" />全选</td>
+		  					<td>序号</td>
+		  					<td>机构代码</td>
+		  					<td>机构名称</td>
+		  					<td>计税年月</td>
+		  					<td>归属二级机构</td>
+	      					<td>确认状态</td>
+  						</tr>
+					<%
+						for (int i = 0; i < deptInfoList.size(); i++) {
+							DeptInfo deptInfo = (DeptInfo) (deptInfoList.get(i));
+					%>
+	    				<tr class="h30" align="center" border="1" bgcolor="#f0f8fd" onMouseOver="this.bgColor='#dddddd';" onMouseOut="this.bgColor='#f0f8fd';">
+		      				<td><input type="checkbox" class="checkbox_YB" name="select" onClick="choiceflag(this)"  value="<%=qr.getBranch_id()+qr.getStat_yearmonth()%>" <%if(qr.getIs_valid().equals(ConstFlag.FLAG_VALID)){ %> disabled="disabled" <%} %>/></td>
+					      	<td><%=i + 1%></td>
+					      	<td nowrap="nowrap"><%=qr.getBranch_id()%></td>
+					      	<td nowrap="nowrap"><%=qr.getBranch_name()%></td>
+					      	<td nowrap="nowrap"><%=qr.getStat_yearmonth()%></td>
+					      	<td nowrap="nowrap"><%=qr.getBranch_name_2()%></td>
+					      	<td nowrap="nowrap" align="center">
+		      					<input id="<%=qr.getBranch_id()%>" type="text" value="<%=qr.getIs_valid_name()%>" name="is_valid" style="height:auto; border:none; background:none;width:auto;"/>
+		      				</td>
+	    				</tr>
+					<%
+						}
+					%>
+  					</table>
+					<% } %>
+				</td>
+  			</tr>
+  			<tr class="h30"><td height="25">&nbsp;</td></tr>
+		</table>
+		
+	
+	
+		<table>
+			<tr>
+				<td>部门编号:  </td>
+				 <td><input type="text" id="deptNo" name="deptInfo.deptNo"></td>
+			</tr>		
+			<tr>
+				<td>部门名称:  </td>
+				 <td><input type="text" id="dName" name="deptInfo.dName"></td>
+			</tr>		
+			<tr>
+				<td>部门位置:  </td>
+				 <td><input type="text" id="loc" name="deptInfo.loc"></td>
+			</tr>		
+		</table>
+	
+		
+	</form>	
+</body>
+</html>

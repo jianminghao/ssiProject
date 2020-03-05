@@ -1,0 +1,27 @@
+package myssiProject.com.hao.detp.actionForm;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.struts.action.ActionErrors;
+import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionMapping;
+
+import myssiProject.com.hao.detp.vo.DeptInfo;
+
+@SuppressWarnings("serial")
+public class DeptActionForm extends ActionForm {
+
+	private DeptInfo deptInfo;
+	
+	public DeptInfo getDeptInfo() {
+		return deptInfo;
+	}
+
+	public ActionErrors validate(ActionMapping mapping,
+			HttpServletRequest request) {
+		
+		
+		return null;
+	}
+	
+}

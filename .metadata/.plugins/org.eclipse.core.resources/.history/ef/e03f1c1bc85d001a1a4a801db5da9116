@@ -1,0 +1,21 @@
+package myssiProject.com.hao.detp.dao.ibatis;
+
+import java.sql.SQLException;
+
+import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
+
+import myssiProject.com.hao.detp.dao.DeptDao;
+import myssiProject.com.hao.detp.vo.DeptInfo;
+
+public class DeptDaoImpl extends SqlMapClientDaoSupport implements DeptDao {
+
+	@Override
+	public void insertDeptInfo(DeptInfo deptInfo) {
+		try {
+			getSqlMapClient().insert("deptSQL.insertDeptInfo", deptInfo);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+}

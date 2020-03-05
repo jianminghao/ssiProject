@@ -1,0 +1,7 @@
+package myssiProject.com.hao.detp.vo;
+
+import java.io.Serializable;
+
+public class DeptInfo implements Serializable {
+
+}

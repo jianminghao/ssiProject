@@ -1,0 +1,3 @@
+INDEX VERSION 1.131
+E:\FB3\workspace\myssi\.metadata\.plugins\org.eclipse.jst.jsp.core\jspsearch\898337375.index
+\myssiProject\src

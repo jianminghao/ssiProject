@@ -1,0 +1,5 @@
+package myssiProject.com.hao.detp.service;
+
+public interface DeptDao {
+
+}
